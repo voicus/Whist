@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="../style/register-template.css">
+<link rel="stylesheet" href="../style/common_style.css">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Form</title>
+</head>
+<body>
+    <h1> Register Form </h1>
+    <form id="my-form" action="/register" method="post" enctype="multipart/form-data">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username">
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password">
+        <br>
+        <label for="password">Confirm Password:</label>
+        <input type="password" id="confirm-password" name="confirm-password">
+        <br>
+        <input type="submit" value="Register">
+    </form>
+    <div id="login_already">
+        <a href="/login">Am deja un cont</a>
+    </div>
+</body>
+</html>

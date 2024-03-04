@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="../style/common_style.css">
+<link rel="stylesheet" href="../style/leaderboard.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+</head>
+<script>
+    myScoreInfo = {}
+    allUsersScores = []
+    const xhr1 = new XMLHttpRequest();
+    xhr1.open("GET", "http://proiect.home.ro/getMyScore", false)
+    xhr1.onload = () => {
+        if(xhr1.status == 200) {
+            myScoreInfo = JSON.parse(xhr1.response)
+            console.log(myScoreInfo)
+        }
+    }
+    xhr1.send()
+
+    const xhr2 = new XMLHttpRequest();
+    xhr2.open("GET", "http://proiect.home.ro//getAllUsersWithScore", false)
+    xhr2.onload = () => {
+        if(xhr2.status == 200) {
+            allUsersScores = JSON.parse(xhr2.response)
+        }
+    }
+    xhr2.send()
+
+    document.addEventListener("DOMContentLoaded", () => {
+        myInfoDiv = document.getElementById("user_score_info")
+        p = document.createElement("p")
+        p.innerHTML =   `Your username: <span style="font-weight:bold;">${myScoreInfo.username}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +      
+                                `Games Won/Lost: <span style="font-weight:bold;">${myScoreInfo.gamesWon}/${myScoreInfo.gamesLost}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
+                                `Rating: <span style="font-weight:bold;">${myScoreInfo.rating}</span>`
+        const buttonDown = document.createElement("button")
+        buttonDown.innerHTML = "See my position"
+        buttonDown.classList = "action_button blueish"
+        buttonDown.onclick = () => {
+            window.location.href = "#my_position"
+        }
+        myInfoDiv.appendChild(p)
+        myInfoDiv.appendChild(buttonDown)
+        leaderboard = document.getElementById("append_users_here")
+        positionCounter = 1
+        for(let userScore of allUsersScores) {
+            tr = document.createElement("tr")
+            if(userScore.username == myScoreInfo.username) {
+                tr.id = "my_position"
+            }
+            positionTd = document.createElement("td")
+            usernameTd = document.createElement("td")
+            gamesWonTd = document.createElement("td")
+            gamesLostTd = document.createElement("td")
+            ratingTd = document.createElement("td")
+            positionTd.innerHTML = positionCounter
+            usernameTd.innerHTML = userScore.username
+            gamesWonTd.innerHTML = userScore.gamesWon
+            gamesLostTd.innerHTML = userScore.gamesLost
+            ratingTd.innerHTML = userScore.rating
+            tr.appendChild(positionTd)
+            tr.appendChild(usernameTd)
+            tr.appendChild(gamesWonTd)
+            tr.appendChild(gamesLostTd)
+            tr.appendChild(ratingTd)
+            leaderboard.appendChild(tr)
+            positionCounter ++ 
+        }
+
+        document.getElementById("buton_up").onclick = () => {
+            window.location.href = "#"
+        }
+    })
+</script>
+<body>
+    <div id="header">
+        <button class="action_button blueish"id="back_to_profile" onclick="window.location.href='/'">Back to profile</button>
+        <h1 class="title">Leaderboard</h1>
+        <form action="/logout" method="post">
+            <button class="logout-button" name="foo" value="upvote">Log Out</button>
+        </form>
+    </div>
+    <div id="user_score_info" class="container"></div>
+    <div id="leaderboard_wrapper" class="container">
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th>Username</th>
+                    <th>Games Won</th>
+                    <th>Games Lost</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody id="append_users_here">
+            </tbody>
+        </table>
+    </div>
+    <div id="buton_up" title="Top"><div id="up_arrow" class="arrow up"></div></div>
+</body>
+</html>

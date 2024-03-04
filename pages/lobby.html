@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../style/lobby.css">
+    <meta charset="UTF-8">
+    <title>Lobby {{.LobbyName}}</title>
+</head>
+<link rel="stylesheet" href="../style/common_style.css">
+<script src="https://unpkg.com/centrifuge@3.1.0/dist/centrifuge.js"></script>
+<p id="token_jwt" style="display: none">{{.Token}}</p>
+<p id="lobby_name" style="display: none">{{.LobbyName}}</p>
+<p id="username" style="display: none">{{.Username}}</p>
+<script type="text/javascript">
+    const clickableCards = new Set();
+    const suites = new Map();
+    suites.set(1, "hearts")
+    suites.set(2, "clubs")
+    suites.set(3, "diamonds")
+    suites.set(4, "spades")
+
+    const values = new Map()
+    values.set(12, "jack")
+    values.set(13, "queen")
+    values.set(14, "king")
+    values.set(15, "ace")
+    values.set(7, "7")
+    values.set(8, "8")
+    values.set(9, "9")
+    values.set(10, "10")
+    const client = new Centrifuge("ws://proiect.home.ro:8000/connection/websocket", {
+        token: document.getElementById("token_jwt").innerHTML
+    });
+    client.on('connecting', function(ctx) {
+        console.log('connecting', ctx);
+    });
+
+    client.on('connected', function(ctx) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://proiect.home.ro/connect')
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log('connected', ctx);
+            } else {
+                window.location.replace("/")
+            }
+        }
+        xhr.send()
+    });
+
+    client.on('disconnected', function(ctx) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://proiect.home.ro/disconnect')
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log('disconnected', ctx);
+            } else {
+                window.location.replace("/")
+            }
+        }
+        xhr.send()
+    });
+    window.onbeforeunload = function () {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://proiect.home.ro/disconnect')
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log('disconnected', ctx);
+            } else {
+                window.location.replace("/")
+            }
+        }
+        xhr.send()
+
+        const xhr1 = new XMLHttpRequest();
+        xhr1.open("POST", "http://proiect.home.ro/removeFromLobby")
+        xhr1.setRequestHeader("Content-Type", "application/json");
+        var requestData = JSON.stringify({
+            lobby: document.getElementById("lobby_name").innerHTML,
+            name: document.getElementById("username").innerHTML
+        });
+        xhr1.onload = () => {
+            if (xhr1.status === 200) {
+                alert("Removed from lobby successfully")
+            } else {
+                alert("Error removing from lobby")
+            }
+        }
+        xhr1.send(requestData)
+    }
+    client.connect();
+    const sub = client.newSubscription(document.getElementById("lobby_name").innerHTML)
+    sub.subscribe();
+    sub.on('publication', async function (ctx) {
+        rasp = ctx.data
+        console.log(rasp)
+        if (rasp["flag"] === 99) {
+            console.log("am primit")
+            console.log(rasp)
+            const message = document.createElement("p")
+            message.innerHTML = `<span style="font-weight:bold;">${rasp["user"]}</span>: ${rasp["message"]}`
+            document.getElementById("chat").appendChild(message)
+        }
+        if (rasp["flag"] === 109) {
+            console.log("am primit")
+            console.log(rasp)
+            text = document.createElement('p')
+            text.innerHTML = rasp["user"]
+            document.getElementsByClassName("membrii")[0].appendChild(text)
+        }
+        console.log(rasp["flag"])
+        if (rasp["flag"] === "dm") {
+            membrii = document.getElementsByClassName("membrii")[0]
+            for (const child of membrii.children) {
+                if (child.tagName === "P" && child.innerHTML === rasp["user"]) {
+                    console.log(child)
+                    membrii.removeChild(child)
+                    break
+                }
+            }
+        }
+        if (rasp["flag"] === "requestBid") {
+            user = document.getElementById("username").innerHTML
+            console.log(user, rasp["user"])
+            if (user === rasp["user"]) {
+                document.getElementById("bid_wrapper").style.display = "grid";
+
+                document.getElementById("bid_button").addEventListener("click", () => {
+                    bid = document.getElementById("bid_input").value
+                    console.log(bid)
+                    if (bid !== "" && !isNaN(bid)) {
+                        intBid = parseInt(bid)
+                        sum = parseInt(rasp["sumBids"])
+                        noCards = parseInt(rasp["numberOfCards"])
+                        console.log(rasp["isLast"], intBid, sum, noCards)
+                        if ((intBid < 0) || (intBid > noCards)) {
+                            alert("Bid must be positive and less than " + noCards);
+                        }
+                        else if ((rasp["isLast"] === true && intBid + sum === noCards)) {
+                            alert("The sum of all bids must not be the same as the number of cards dealt to each player " + "Sum of bids: " + rasp["sumBids"] + "NoCards : " + rasp["numberOfCards"]);
+                        } else {
+                            document.getElementById("bid_wrapper").style.display = "none";
+
+                            var old_element = document.getElementById("bid_button");
+                            var new_element = old_element.cloneNode(true);
+                            old_element.parentNode.replaceChild(new_element, old_element);
+
+                            const xhr1 = new XMLHttpRequest();
+                            xhr1.open("POST", "http://proiect.home.ro/makeBid")
+                            xhr1.setRequestHeader("Content-Type", "application/json");
+                            var requestData = JSON.stringify({
+                                "bid": bid,
+                                "lobby": document.getElementById("lobby_name").innerHTML,
+                                "jucator": document.getElementById("username").innerHTML
+                            });
+                            console.log("trimit bidul meu???")
+                            xhr1.onload = () => {
+                                if (xhr1.status === 200) {
+                                    console.log("OK")
+                                } else {
+                                    console.log("Error")
+                                }
+                            }
+                            xhr1.send(requestData)
+                        }
+                    } else {
+                        alert("Please enter a number for the bid.");
+                    }
+                })
+            }
+        }
+
+        // cartile distribuite la inceputul fiecarei runde ()
+        if (rasp["flag"] === "carti_joc") {
+            const decodedData = JSON.parse(atob(rasp["data"]));
+            console.log(rasp["flag"])
+            console.log(decodedData)
+            for (let x of decodedData.players) {
+                // daca jucatorul x este jucatorul client (eu), i se seteaza cartile din mana
+                if (x.username === document.getElementById("username").innerHTML) {
+                    carti_player = document.getElementById("carti_jucator")
+                    carti_player.innerHTML = ""
+                    for (let carte of x.cards) {
+                        img_carte = "../deckOfCards/SVG-cards-1.3/" + values.get(carte.value) + "_of_" + suites.get(carte.suite) + ".svg"
+                        aux = document.createElement("img")
+                        aux.src = img_carte
+                        aux.alt = carte.value + " " + carte.suite
+                        carti_player.appendChild(aux)
+                    }
+                }
+            }
+            if (decodedData.trump.value >= 7) {
+                trump = "../deckOfCards/SVG-cards-1.3/" + values.get(decodedData.trump.value) + "_of_" + suites.get(decodedData.trump.suite) + ".svg"
+                aux = document.createElement("img")
+                aux.src = trump
+                document.getElementById("trump").innerHTML = ""
+                document.getElementById("trump").appendChild(aux)
+                document.getElementById("trump").style.display = 'block'
+            }
+        }
+
+        // my turn here
+        if (rasp["flag"] === "validCards") {
+            const decodedData = JSON.parse(atob(rasp["data"]));
+            if (decodedData.username === document.getElementById("username").innerHTML) {
+                document.getElementById("request_card").style.display = "grid";
+                for (let carte of decodedData.cards) {
+                    clickableCards.add(carte.value + " " + carte.suite)
+                }
+                for (let carte of decodedData.cards) {
+                    carti_player = document.getElementById("carti_jucator")
+                    img_carte = 'http://proiect.home.ro/deckOfCards/SVG-cards-1.3/' + values.get(carte.value) + "_of_" + suites.get(carte.suite) + ".svg"
+                    for (let carte_img of carti_player.children) {
+                        console.log(img_carte, carte_img.src)
+                        if (carte_img.src === img_carte) {
+                            carte_img.style.opacity = '1'
+                            console.log(carte_img)
+                            carte_img.addEventListener("click", (event) => {
+                                console.log(event.target)
+                                target = event.target
+                                if (!clickableCards.has(target.alt))
+                                    return
+                                aux = target.alt.split(" ")
+                                console.log("Clicked on: ", carte_img)
+                                console.log(values.get(aux[0]), suites.get(aux[1]))
+                                target.style.opacity = '0'
+                                const xhr1 = new XMLHttpRequest();
+                                xhr1.open("POST", 'http://proiect.home.ro/playCard')
+                                xhr1.setRequestHeader("Content-Type", "application/json");
+                                var requestData = JSON.stringify({
+                                    "value": aux[0],
+                                    "suite": aux[1],
+                                    "lobby": document.getElementById("lobby_name").innerHTML,
+                                    "jucator": document.getElementById("username").innerHTML
+                                });
+                                console.log("request data: ", requestData)
+                                xhr1.onload = () => {
+                                    if (xhr1.status === 200) {
+                                        console.log("OK")
+                                    } else {
+                                        console.log("Error")
+                                    }
+                                }
+                                xhr1.send(requestData)
+                                clickableCards.clear()
+                                document.getElementById("request_card").style.display = "none";
+                                for (let turnIdleCard of document.getElementById("carti_jucator").children) {
+                                    if (turnIdleCard.style.opacity === '1')
+                                        turnIdleCard.style.opacity = '0.5'
+                                }
+                            })
+                        }
+                    }
+                }
+            }
+
+        }
+        if (rasp["flag"] === "playedCard") {
+            img_carte = "../deckOfCards/SVG-cards-1.3/" + values.get(rasp["value"]) + "_of_" + suites.get(rasp["suite"]) + ".svg"
+            cine = rasp["who"]
+            img = document.createElement("img")
+            img.src = img_carte
+            img.style.width='50%'
+            img.style.height='50%'
+
+            text = document.createElement("div")
+            text.innerHTML = "Played by " + cine
+            text.style.background = 'yellow'
+
+
+            divmare = document.createElement("div")
+            divmare.appendChild(text)
+            divmare.appendChild(img)
+            document.getElementById("playedCards").appendChild(divmare)
+        }
+        if (rasp["flag"] === "endRound") {
+            clickableCards.clear()
+            console.log("endRound")
+            const decodedData = JSON.parse(atob(rasp["data"]));
+            document.getElementById("score").innerHTML = ''
+            document.getElementById("bids").innerHTML = ''
+            for (player of decodedData.players) {
+                var name = document.createElement("p")
+                name.innerHTML = "Scoreboard"
+                name.id = "ok2"
+                elem = document.getElementById("ok2")
+                if (elem === null) {
+                    document.getElementById("score").appendChild(name)
+                }
+                p = document.createElement("p")
+                p.innerHTML = player.name + " " + player.score
+                document.getElementById("score").appendChild(p)
+            }
+        }
+        if (rasp["flag"] === "endgame") {
+            maxscore = rasp["maxScore"]
+            scores = document.getElementById("score")
+            for (sc of scores.children) {
+                aux = sc.innerHTML.split(" ")
+                if (aux[0] === document.getElementById("username").innerHTML) {
+                    if (aux[1] === maxscore) {
+                        window.location.href("/winner")
+                    } else {
+                        window.location.href("/")
+                    }
+                }
+            }
+        }
+        if (rasp["flag"] === "endHand") {
+            await new Promise(r => {
+                setTimeout(r, 750)}
+            );
+            document.getElementById("playedCards").innerHTML = ""
+        }
+        if (rasp["flag"] === "playerBid") {
+            var name = document.createElement("div")
+            name.innerHTML = "Bids"
+            name.id = "ok1"
+            elem = document.getElementById("ok1")
+            if (elem === null) {
+                document.getElementById("bids").appendChild(name)
+            }
+            p = document.createElement("p")
+            p.innerHTML = rasp["who"] + " " + rasp["bid"]
+            document.getElementById("bids").appendChild(p)
+        }
+        if (rasp["flag"] === "tricks") {
+            lst = document.getElementById("tricks")
+            lst.innerHTML = ''
+            nm = document.createElement("h2")
+            nm.innerHTML = "Tricks"
+            lst.appendChild(nm)
+            if (Object.keys(rasp)[0] != "flag") {
+                p1 = document.createElement("div")
+                p1.innerHTML = Object.keys(rasp)[0] + " " + rasp[Object.keys(rasp)[0]]
+                lst.appendChild(p1)
+            }
+
+            if (Object.keys(rasp)[1] != "flag") {
+                p2 = document.createElement("div")
+                p2.innerHTML = Object.keys(rasp)[1] + " " + rasp[Object.keys(rasp)[1]]
+                lst.appendChild(p2)
+            }
+
+            if (Object.keys(rasp)[2] != "flag")  {
+                p3 = document.createElement("div")
+                p3.innerHTML = Object.keys(rasp)[2] + " " + rasp[Object.keys(rasp)[2]]
+                lst.appendChild(p3)
+            }
+            if (Object.keys(rasp)[3] != "flag") {
+                p4 = document.createElement("div")
+                p4.innerHTML = Object.keys(rasp)[3] + " " + rasp[Object.keys(rasp)[3]]
+                lst.appendChild(p4)
+            }
+
+            if (Object.keys(rasp)[4] != "flag") {
+                p5 = document.createElement("div")
+                p5.innerHTML = Object.keys(rasp)[4] + " " + rasp[Object.keys(rasp)[4]]
+                lst.appendChild(p5)
+            }
+
+            
+        }
+    })
+    sub.on('subscribing', function(ctx) {
+            console.log('subscribing');
+    })
+    sub.on('subscribed', function(ctx) {
+        console.log('subscribed');
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", 'http://proiect.home.ro/addToLobby', false)
+        xhr.setRequestHeader("Content-Type", "application/json");
+        var requestData = JSON.stringify({
+            lobby: document.getElementById("lobby_name").innerHTML,
+            name: document.getElementById("username").innerHTML
+        });
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    console.log("Name added to the lobby successfully");
+                    const xhr1 = new XMLHttpRequest();
+                    xhr1.open("GET", 'http://proiect.home.ro/lobbyMembers/' + document.getElementById("lobby_name").innerHTML, false);
+                    xhr1.onload = function () {
+                        console.log(xhr1.response);
+                        var vec = JSON.parse(xhr1.response);
+                        var currentPlayer = document.getElementById("username").innerHTML; // Numele jucatorului curent
+
+                        for (x in vec) {
+                            if (vec[x] !== currentPlayer) {
+                                text = document.createElement('p')
+                                text.innerHTML = vec[x]
+                                document.getElementsByClassName("membrii")[0].appendChild(text)
+                            }
+                        }
+                    };
+
+                    xhr1.send();
+                } else {
+                    console.error("Error:", xhr.status, xhr.statusText);
+                }
+            }
+        };
+        xhr.send(requestData);
+    })
+    sub.on('unsubscribed', function(ctx) {
+            console.log('unsubscribed');
+    })
+
+    function toggleChat() {
+        const chat = document.getElementById("container")
+        if (chat.style.display === "none") {
+            chat.style.display = "flex"
+        } else {
+            chat.style.display = "none"
+        }
+    }
+
+    function sendMessage() {
+        const message = document.getElementById('message').value;
+        if (message.length === 0) {
+            return;
+        }
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://proiect.home.ro/send')
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function () {}
+        const data = {user: document.getElementById("username").innerHTML, message:message, channel: document.getElementById("lobby_name").innerHTML}
+        xhr.send(JSON.stringify(data))
+        document.getElementById('message').value = '';
+    }
+
+</script>
+<body>
+<div id="request_card">Please pick a card</div>
+<div id="bid_wrapper">
+    <input type="text" id="bid_input" placeholder="Enter your bid here">
+    <button id="bid_button" class="action_button blueish">Place bid</button>
+</div>
+<div id="upper-wrapper">
+    <button id="buton_intoarcere_lobbies" class="action_button pinkish" onclick="window.location.href='/lobbies'">Exit lobby</button>
+    <h1 class="lobby-name">{{.LobbyName}} </h1>
+    <button id="toggle_chat" class="action_button blueish" onclick="toggleChat()">Chat</button>
+</div>
+
+<div style="display: flex">
+    <div class="membrii">
+        <h2>Membrii</h2>
+    </div>
+    <div id="score" style="background: gray">
+
+    </div>
+    <div id="bids" style="background: white">
+
+    </div>
+    <div id="tricks" style="background: gray">
+
+    </div>
+    <div id="trump" style="padding: 5px;display: none">
+        <div style="background: yellow;">
+            <h1>TRUMP</h1>
+        </div>
+    </div>
+</div>
+
+<div id = "playedCards" style="width: 300px;height: 300px">
+
+</div>
+
+<div id = "container_mare">
+<div id="container_joc" style="display: flex">
+    <div id = "carti_intoarse_stanga">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+    </div>
+
+    <div id = "carti_intoarse_fata">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+    </div>
+
+    <div id = "carti_intoarse_dreapta">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+        <img src="../deckOfCards/SVG-cards-1.3/red_joker.svg">
+    </div>
+    <div id="carti_jucator" style="" class="carte_de_joc">
+
+    </div>
+
+</div>
+<div id="container" style="">
+    <div id="chat">
+    </div>
+    <div class="chat-input">
+        <input placeholder="Message" type="text" id="message">
+        <button onclick="sendMessage()" class="send-button">Send</button>
+    </div>
+</div>
+</div>
+<!--<h1>{{.Username}}</h1>-->
+</body>
+</html>

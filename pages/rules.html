@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="./style/rules.css">
+<link rel="stylesheet" href="../style/common_style.css">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+        <title>Rulebook</title>
+    </head>
+    <body>
+        <div id="header">
+            <button class="action_button blueish"id="back_to_profile" onclick="window.location.href='/'">Back to profile</button>
+            <h1 class="title">Rules</h1>
+            <form action="/logout" method="post">
+                <button class="logout-button" name="foo" value="upvote">Log Out</button>
+            </form>
+        </div>
+        <div id = "rule_text">
+        <h3>Overview</h3>
+        <br> 
+        <p>The game has a total of 24 rounds. In each round, your goal is to get exactly as many tricks as your bid, which is placed at the beginning of the round, after you look into your hand.
+            The first 4 rounds have no trump card, and each player has 8 cards in their hand. Afterwards, the next 16 rounds will have a trump card(One card taken out of the deck, and its suite is now the trump - to be clarified later.) and will be played with 7,6,..2 cards, and then 4 rounds with 1, 
+            and then going upwards from 2 to 7 again. The last 4 rounds will be played like the first 4.
+        </p>
+        <br>
+        <h3>What happens in each round?</h3>
+        <br>
+        <p>At the beginning of each round, each player has to place a bid, which is the number of tricks they think they will take. The sum of the bids cannot be the exact number of cards in each player's hands, or else there is a chance that no one loses. The last player is at a clear disadvantage, 
+            but players take turns going first anyways. In each round, there are as many tricks as cards in any player's hand. Each trick consists of 1 card being played by every participant. In the first trick of the round, the first player to play a card is the first one to bid. For every other trick,
+            the first player will be the winner of the previous trick.
+        </p>
+        <br>
+        <h3>What is a trick?</h3>
+        <p>A trick is a part of a round where each participant plays a card. The first card played is a little bit special, however. Every other player MUST play a card of the same suite if they have one. If they don't, they MUST play a trump card if they have one. If not, they can play any card.
+            The winner of the trick is the biggest card with the trump suite. If there is none or there is no trump, the biggest card with the same suite as the first card played wins the trick.
+        </p>
+        <br>
+        <h3>Scoring</h3>
+        <p>
+            Every time you win a round(Your bid is equal to the amount of tricks taken), your score goes up by 10 + bid. Otherwise, the absolute difference between your bid and tricks taken will be deducted from your score.
+        </p>
+        
+        </div>
+    </body>
+</html>

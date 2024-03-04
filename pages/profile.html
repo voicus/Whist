@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="../style/profile.css">
+<link rel="stylesheet" href="../style/common_style.css">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+</head>
+<body>
+    <div id="header">
+        <h2> Hello there, {{.Username}} </h2>
+        <form action="/logout" method="post">
+            <button class="logout-button" name="foo" value="upvote">Log Out</button>
+        </form>
+    </div>
+    <br>
+    <div id="options">
+        <button id="buton_lobbie" onclick="window.location.href='/lobbies'" class="action_button blueish">See lobbies</button>
+        <button id="buton_rules" onclick="window.location.href='/rules'" class="action_button blueish">Rules</button>
+        <button id="buton_friends" onclick="window.location.href='/manageFriends'" class="action_button blueish">Manage friends</button>
+        <button id="buton_leaderboard" onclick="window.location.href='/leaderboard'" class="action_button blueish">Leaderboard</button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Friends</title>
+</head>
+<link rel="stylesheet" href="../style/common_style.css">
+<link rel="stylesheet" href="../style/manage_friends.css">
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const xhr1 = new XMLHttpRequest();
+        xhr1.open("GET", "http://proiect.home.ro/getFriends")
+        xhr1.onreadystatechange = () => {
+            if(xhr1.readyState === XMLHttpRequest.DONE && xhr1.status === 200) {
+                response = JSON.parse(xhr1.response)
+                console.log("Friends: ", response)
+                const myDiv = document.getElementById("friends")
+                myDiv.innerHTML = ""
+                for(let friend of response) {
+                    p = document.createElement("p")
+                    p.innerHTML = friend.username
+                    p.classList = 'friend_element'
+                    let buttonRemove = document.createElement("button")
+                    buttonRemove.innerHTML = "Remove"
+                    buttonRemove.value = friend.username
+                    buttonRemove.classList = "action_button red"
+                    buttonRemove.addEventListener("click", () => {
+                        const xhr4 = new XMLHttpRequest();
+                        xhr4.open("POST", "http://proiect.home.ro/removeFriend/" + buttonRemove.value)
+                        xhr4.onload = () => {
+                            if(xhr4.status == 200) {
+                                console.log("Friend Removed")
+                                alert("Friend Removed")
+                                location.reload()
+                            } else {
+                                console.log("Error removing child")
+                                alert("Error error removing child", xhr4.status)
+                            }
+                        }
+                        xhr4.send()
+                    })
+                    p.appendChild(buttonRemove)
+                    myDiv.appendChild(p)
+                }
+            }
+        }
+        document.getElementById("friends").innerHTML = "Loading..."
+        xhr1.send()
+
+        const xhr2 = new XMLHttpRequest();
+        xhr2.open("GET", "http://proiect.home.ro/getFriendRequests")
+        xhr2.onreadystatechange = () => {
+            if(xhr2.readyState == XMLHttpRequest.DONE && xhr2.status == 200) {
+                response = JSON.parse(xhr2.response)
+                console.log("Friend Requests: ", response)
+                const myDiv = document.getElementById("pending_friend_requests")
+                myDiv.innerHTML = ""
+                for(let friendRequest of response) {
+                    p = document.createElement("p")
+                    p.innerHTML = friendRequest.username
+                    p.classList = 'friend_element'
+                    let buttonAccept = document.createElement("button")
+                    buttonAccept.innerHTML = "Accept"
+                    buttonAccept.value = friendRequest.username
+                    buttonAccept.classList = "action_button blueish"
+                    buttonAccept.addEventListener("click", () => {
+                        const xhr4 = new XMLHttpRequest();
+                        xhr4.open("POST", "http://proiect.home.ro/acceptFriend/" + buttonAccept.value)
+                        xhr4.onload = () => {
+                            if(xhr4.status == 200) {
+                                console.log("Friend Request Accepted")
+                                alert("Friend Request Accepted")
+                                location.reload()
+                            } else {
+                                console.log("Error accepting friend request")
+                                alert("Error accepting friend request", xhr4.status)
+                            }
+                        }
+                        xhr4.send()
+                    })
+                    let buttonReject = document.createElement("button")
+                    buttonReject.innerHTML = "Reject"
+                    buttonReject.value = friendRequest.username
+                    buttonReject.classList = "action_button red"
+                    buttonReject.addEventListener("click", () => {
+                        const xhr4 = new XMLHttpRequest();
+                        xhr4.open("POST", "http://proiect.home.ro/declineFriend/" + buttonReject.value)
+                        xhr4.onload = () => {
+                            if(xhr4.status == 200) {
+                                console.log("Friend Request Declined")
+                                alert("Friend Request Declined")
+                                location.reload()
+                            } else {
+                                console.log("Error declining friend request")
+                                alert("Error declining friend request", xhr4.status)
+                            }
+                        }
+                        xhr4.send()
+                    })
+                    p.appendChild(buttonAccept)
+                    p.appendChild(buttonReject)
+                    myDiv.appendChild(p)
+                }
+            }
+        }
+        document.getElementById("pending_friend_requests").innerHTML = "Loading..."
+        xhr2.send()
+
+        const xhr3 = new XMLHttpRequest();
+        xhr3.open("GET", "http://proiect.home.ro/getUsersNotRelatedToMe")
+        xhr3.onreadystatechange = () => {
+            if(xhr3.readyState == XMLHttpRequest.DONE && xhr3.status == 200) {
+                response = JSON.parse(xhr3.response)
+                console.log("Other Users: ", response)
+                const myDiv = document.getElementById("other_users")
+                myDiv.innerHTML = ""
+                for(let user of response) {
+                    p = document.createElement("p")
+                    p.innerHTML = user.username
+                    p.classList = 'friend_element'
+                    let button = document.createElement("button")
+                    button.innerHTML = "Send Request"
+                    button.value = user.username
+                    button.classList = "action_button blueish"
+                    button.addEventListener("click", () => {
+                        const xhr4 = new XMLHttpRequest();
+                        try {
+                            xhr4.open("POST", "http://proiect.home.ro/addFriend/" + button.value)
+                            xhr4.onload = () => {
+                                if(xhr4.status == 200) {
+                                    console.log("Friend Request Sent")
+                                    alert("Friend Request Sent")
+                                    myDiv.removeChild(p)
+                                } else {
+                                    console.log("Error sending friend request")
+                                    alert("Error sending friend request", xhr4.status)
+                                }
+                            }
+                            xhr4.send()
+                        } catch(error) {
+                            console.error(error)
+                        }
+                    })
+                    p.appendChild(button)
+                    myDiv.appendChild(p)
+                }
+            }
+        }
+        document.getElementById("other_users").innerHTML = "Loading..."
+        xhr3.send()
+    })
+</script>
+<body>
+    <div id="header">
+        <button class="action_button blueish" id="back_to_profile" onclick="window.location.href='/'">Back to profile</button>
+        <h1>Manage Your Friends</h1>
+        <form action="/logout" method="post">
+            <button id="logout" class="logout-button" name="foo" value="upvote">Log Out</button>
+        </form>
+    </div>
+
+    <div id="container">
+        <h2>Friends</h2>
+        <h2>Pending Friend Requests</h2>
+        <h2>Other Users</h2>
+        <div id="friends" class="friend_container">
+
+        </div>
+        <div id="pending_friend_requests" class="friend_container">
+            
+        </div>
+        <div id="other_users" class="friend_container">
+
+        </div>
+    </div>
+</body>
+</html>

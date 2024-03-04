@@ -1,0 +1,126 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient( to left, #ffcccc, #66ccff);
+    display: grid;
+    grid-template-rows: 80px auto;
+}
+
+#by_id {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 10vh;
+    gap: 10px;
+}
+
+.blueish {
+    background-color: #007bff;
+}
+
+.blueish:hover {
+    background-color: #0069d9;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 10vh;
+    flex-basis: 0;
+    /*margin-left:;*/
+}
+
+#container button,
+#container input {
+    margin-bottom: 10px;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.button-container button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.button-container button:hover {
+    background-color: #0056b3;
+}
+
+.button-container input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    outline: none;
+}
+
+.title {
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+}
+.lobby-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lobby-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lobby-list-item:hover {
+    background-color: #ebebeb;
+}
+
+.lobby-list-item button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.lobby-list-item button:hover {
+    background-color: #0056b3;
+}
+
+.lobby-list-item span {
+    font-size: 16px;
+}
+.lobby-list-item span {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.lobby-list-item button:hover {
+    background-color: #0056b3;
+}
+
+#container_two {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    place-items: center;
+}
